@@ -1,0 +1,17 @@
+{
+    "manifest_version": 3,
+    "name": "Color Identification Game Bot",
+    "version": "1.0",
+    "description": "私はただ、限界が知りたかっただけなんだ...\n色を見分けるゲームを自動で攻略する拡張機能（間違えることがないせいで一生スコアボードに行くことができない）",
+    "content_scripts": [
+        {
+            "matches": [
+                "https://shikisai101.com/app/color-identification-game/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ]
+}
