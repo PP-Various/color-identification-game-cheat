@@ -7,7 +7,7 @@ style.textContent = `
 document.head.appendChild(style);
 
 // 現在の設定値を保持する変数
-let maxRounds = 20;
+let maxRounds = 50;
 let currentRound = 0;
 
 // 設定変更を監視して即時反映
