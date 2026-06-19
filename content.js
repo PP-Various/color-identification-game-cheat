@@ -1,64 +1,75 @@
-// --- 1. CSS上書き用スタイルを注入 ---
+// スタイルの注入
 const style = document.createElement('style');
 style.textContent = `
-  .cig-grid { 
-    gap: 0 !important; 
-  }
-  .cig-cell { 
-    border-radius: 0 !important; 
-  }
+  .cig-grid { gap: 0 !important; }
+  .cig-cell { border-radius: 0 !important; }
 `;
 document.head.appendChild(style);
 
-console.log("Color Game Bot: スタイルを適用しました");
+// 現在の設定値を保持する変数
+let maxRounds = 20;
+let currentRound = 0;
 
-// --- 2. ゲーム自動攻略ロジック ---
+// 設定変更を監視して即時反映
+chrome.storage.local.get(['maxRounds'], (result) => {
+  if (result.maxRounds) maxRounds = result.maxRounds;
+});
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.maxRounds) maxRounds = changes.maxRounds.newValue;
+});
 
-// ページ全体を監視して、ゲームの状態変化を検知する
+// ゲーム監視ロジック
 const observer = new MutationObserver((mutations) => {
-    // ゲームのルート要素を取得
-    const root = document.getElementById('cig-root');
-    if (!root) return;
+  const root = document.getElementById('cig-root');
+  if (!root) return;
 
-    // ゲーム中（play状態）かどうかを確認
-    if (root.getAttribute('data-state') !== 'play') return;
+  const state = root.getAttribute('data-state');
 
-    // グリッド要素を取得
-    const grid = document.getElementById('cig-grid');
-    if (!grid) return;
+  // ゲーム開始時にカウンタをリセット
+  if (state === 'start') {
+    currentRound = 0;
+  }
 
-    // 全てのセルを取得
-    const cells = Array.from(grid.querySelectorAll('.cig-cell'));
-    if (cells.length === 0) return;
+  if (state !== 'play') return;
 
-    // 各セルの背景色を取得して、色の出現回数をカウントする
-    const colorMap = {};
-    cells.forEach(cell => {
-        const color = cell.style.backgroundColor;
-        if (color) {
-            colorMap[color] = (colorMap[color] || 0) + 1;
-        }
-    });
+  // 回数制限判定
+  if (currentRound >= maxRounds) {
+    console.log(`Color Identification Game Bot: 設定回数 ${maxRounds} 回に達したため終了します`);
+    root.setAttribute('data-state', 'end');
+    return;
+  }
 
-    // 出現回数が1回の色（＝正解の色のRGB値）を特定する
-    const targetColor = Object.keys(colorMap).find(color => colorMap[color] === 1);
+  const grid = document.getElementById('cig-grid');
+  if (!grid) return;
 
-    // 正解の色が見つかった場合、その色のセルをクリックする
-    if (targetColor) {
-        const targetCell = cells.find(cell => cell.style.backgroundColor === targetColor);
-        if (targetCell) {
-            // 画面更新に合わせてクリックを実行
-            targetCell.click();
-        }
+  const cells = Array.from(grid.querySelectorAll('.cig-cell'));
+  if (cells.length === 0) return;
+
+  const colorMap = {};
+  cells.forEach(cell => {
+    const color = cell.style.backgroundColor;
+    if (color) {
+      colorMap[color] = (colorMap[color] || 0) + 1;
     }
+  });
+
+  const targetColor = Object.keys(colorMap).find(color => colorMap[color] === 1);
+
+  if (targetColor) {
+    const targetCell = cells.find(cell => cell.style.backgroundColor === targetColor);
+    if (targetCell) {
+      targetCell.click();
+      currentRound++;
+      console.log(`Color Identification Game Bot: ${currentRound} / ${maxRounds}`);
+    }
+  }
 });
 
-// body要素以下の変更を監視開始
 observer.observe(document.body, {
-    attributes: true,
-    attributeFilter: ['data-state'],
-    childList: true,
-    subtree: true
+  attributes: true,
+  attributeFilter: ['data-state'],
+  childList: true,
+  subtree: true
 });
 
-console.log("Color Game Bot: 監視を開始しました");
+console.log("Color Identification Game Bot: 監視を開始しました");
