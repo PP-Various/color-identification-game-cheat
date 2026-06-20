@@ -33,7 +33,7 @@ const observer = new MutationObserver((mutations) => {
   if (state !== 'play') return;
 
   // 回数制限判定
-  if (currentRound >= maxRounds) {
+  if (currentRound >= maxRounds * 2) {
     console.log(`Color Identification Game Bot: 設定回数 ${maxRounds} 回に達したため終了します`);
     root.setAttribute('data-state', 'end');
     return;
@@ -60,7 +60,7 @@ const observer = new MutationObserver((mutations) => {
     if (targetCell) {
       targetCell.click();
       currentRound++;
-      console.log(`Color Identification Game Bot: ${currentRound} / ${maxRounds}`);
+      console.log(`Color Identification Game Bot: ${currentRound} / ${maxRounds * 2}`);
     }
   }
 });
